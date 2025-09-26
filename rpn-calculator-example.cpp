@@ -45,29 +45,94 @@ vector<string> command_name = {"cmd_enter", "cmd_clear", "cmd_pop", "cmd_top", "
                                "cmd_right_shift", "cmd_or", "cmd_and", "cmd_add"};
 uint8_t const width = 16U;
 
+// stack used for operations
 stack<uint16_t> st;
 
-shared_ptr<uint16_t> add(uint16_t a, uint16_t b){
-    if(b>numeric_limits<uint16_t>::max() - a){
+// adds two binary numbers and adds it to stack
+// returns nullptr if overflow occurs
+shared_ptr<uint16_t> add(uint16_t a, uint16_t b)
+{
+    if (b > numeric_limits<uint16_t>::max() - a)
+    {
         st.push(b);
         st.push(a);
         return nullptr;
     }
 
-    while(b!=0){
-        uint16_t carry = a&b;
-        a = a^b;
+    while (b != 0)
+    {
+        uint16_t carry = a & b;
+        a = a ^ b;
         b = carry << 1;
     }
     st.push(a);
     return make_shared<uint16_t>(st.top());
 }
 
+// These operators follow similar solutions so I made
+// a switch for them to reduce repeating code
+shared_ptr<uint16_t> commands(int cmd)
+{
+    if (st.size() < 2)
+    {
+        return nullptr;
+    }
+    uint16_t a = st.top();
+    st.pop();
+    uint16_t b = st.top();
+    st.pop();
+    switch (cmd)
+    {
+    case 0:
+        st.push(b << a);
+        break;
+    case 1:
+        st.push(b >> a);
+        break;
+    case 2:
+        st.push(a | b);
+        break;
+    case 3:
+        st.push(a & b);
+        break;
+    case 4:
+        return add(a, b);
+    default:
+        break;
+    }
+    return make_shared<uint16_t>(st.top());
+}
+
+// These operators follow similar solutions so I made
+// a switch for them to reduce repeating code
+shared_ptr<uint16_t> empty_stack(int cmd)
+{
+    if (st.empty())
+    {
+        return nullptr;
+    }
+    switch (cmd)
+    {
+    case 0:
+        st.pop();
+        if (st.empty())
+        {
+            return nullptr;
+        }
+        break;
+    case 1:
+        break;
+    default:
+        break;
+    }
+    return make_shared<uint16_t>(st.top());
+}
+
 shared_ptr<uint16_t> rpn_calc(command const cmd, uint16_t const value = 0)
 {
-    // this is example code which returns a (smart shared) pointer to 16-bit value
     uint16_t val = value;
     shared_ptr<uint16_t> result = nullptr;
+    // switch to execute respective commands
     switch (cmd)
     {
     case cmd_enter:
@@ -82,104 +147,25 @@ shared_ptr<uint16_t> rpn_calc(command const cmd, uint16_t const value = 0)
         result = nullptr;
         break;
     case cmd_pop:
-        if (st.empty())
-        {
-            result = nullptr;
-        }
-        else
-        {
-            st.pop();
-            if (st.empty())
-            {
-                result = nullptr;
-                break;
-            }
-            result = make_shared<uint16_t>(st.top());
-        }
+        result = empty_stack(0);
         break;
     case cmd_left_shift:
-        if (st.size() < 2)
-        {
-            result = nullptr;
-        }
-        else
-        {
-            uint16_t a = st.top();
-            st.pop();
-            uint16_t b = st.top();
-            st.pop();
-            st.push(b << a);
-            result = make_shared<uint16_t>(st.top());
-        }
+        result = commands(0);
         break;
     case cmd_right_shift:
-        if (st.size() < 2)
-        {
-            result = nullptr;
-        }
-        else
-        {
-            uint16_t a = st.top();
-            st.pop();
-            uint16_t b = st.top();
-            st.pop();
-            st.push(b >> a);
-            result = make_shared<uint16_t>(st.top());
-        }
+        result = commands(1);
         break;
     case cmd_top:
-        if (st.empty())
-        {
-            result = nullptr;
-        }
-        else
-        {
-            result = make_shared<uint16_t>(st.top());
-        }
+        result = empty_stack(1);
         break;
     case cmd_or:
-        if (st.size() < 2)
-        {
-            result = nullptr;
-        }
-        else
-        {
-            uint16_t a = st.top();
-            st.pop();
-            uint16_t b = st.top();
-            st.pop();
-            st.push(a | b);
-            result = make_shared<uint16_t>(st.top());
-        }
+        result = commands(2);
         break;
     case cmd_and:
-        if (st.size() < 2)
-        {
-            result = nullptr;
-        }
-        else
-        {
-            uint16_t a = st.top();
-            st.pop();
-            uint16_t b = st.top();
-            st.pop();
-            st.push(a & b);
-            result = make_shared<uint16_t>(st.top());
-        }
+        result = commands(3);
         break;
     case cmd_add:
-        if (st.size() < 2)
-        {
-            result = nullptr;
-        }
-        else
-        {
-            uint16_t a = st.top();
-            st.pop();
-            uint16_t b = st.top();
-            st.pop();
-            result = add(a,b);
-        }
+        result = commands(4);
         break;
     default:
         break;

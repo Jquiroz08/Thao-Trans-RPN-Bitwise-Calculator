@@ -10,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <stack>
 
 using namespace std;
 
@@ -42,6 +43,8 @@ vector<string> command_name = {"cmd_enter",       "cmd_clear", "cmd_pop", "cmd_t
                                "cmd_right_shift", "cmd_or",    "cmd_and", "cmd_add"};
 uint8_t const width = 16U;
 
+stack<uint16_t> st;
+
 /*
  * *** STUDENTS SHOULD WRITE CODE FOR THIS FUNCTION ***
  * Students should create or add any data structures needed.
@@ -49,8 +52,18 @@ uint8_t const width = 16U;
  */
 shared_ptr<uint16_t> rpn_calc(command const cmd, uint16_t const value = 0) {
     // this is example code which returns a (smart shared) pointer to 16-bit value
-    uint16_t val = 0b1001100100000011;
-    shared_ptr<uint16_t> result = make_shared<uint16_t>(val);
+    uint16_t val = value;
+    shared_ptr<uint16_t> result = nullptr;
+    switch(cmd){
+        case cmd_enter:
+            st.push(val);
+            result = make_shared<uint16_t>(st.top());
+            break;
+        default:
+            break;
+    }
+    
+
     return result;
 }
 

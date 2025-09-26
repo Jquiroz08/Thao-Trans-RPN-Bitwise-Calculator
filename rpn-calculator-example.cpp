@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <vector>
 #include <stack>
+#include <limits>
 
 using namespace std;
 
@@ -28,7 +29,8 @@ uint8_t const table_width[] = {14, 18, 14, 18, 14, 18};
 // test harness structs and params
 #define VALUE_NULLPTR -999
 
-enum command : uint16_t {
+enum command : uint16_t
+{
     cmd_enter = 0,
     cmd_clear,
     cmd_pop,
@@ -39,103 +41,149 @@ enum command : uint16_t {
     cmd_and,
     cmd_add,
 };
-vector<string> command_name = {"cmd_enter",       "cmd_clear", "cmd_pop", "cmd_top", "cmd_left_shift",
-                               "cmd_right_shift", "cmd_or",    "cmd_and", "cmd_add"};
+vector<string> command_name = {"cmd_enter", "cmd_clear", "cmd_pop", "cmd_top", "cmd_left_shift",
+                               "cmd_right_shift", "cmd_or", "cmd_and", "cmd_add"};
 uint8_t const width = 16U;
 
 stack<uint16_t> st;
 
-/*
- * *** STUDENTS SHOULD WRITE CODE FOR THIS FUNCTION ***
- * Students should create or add any data structures needed.
- * Students should create or add any functions or classes they may need.
- */
-shared_ptr<uint16_t> rpn_calc(command const cmd, uint16_t const value = 0) {
+shared_ptr<uint16_t> add(uint16_t a, uint16_t b){
+    if(b>numeric_limits<uint16_t>::max() - a){
+        st.push(b);
+        st.push(a);
+        return nullptr;
+    }
+
+    while(b!=0){
+        uint16_t carry = a&b;
+        a = a^b;
+        b = carry << 1;
+    }
+    st.push(a);
+    return make_shared<uint16_t>(st.top());
+}
+
+shared_ptr<uint16_t> rpn_calc(command const cmd, uint16_t const value = 0)
+{
     // this is example code which returns a (smart shared) pointer to 16-bit value
     uint16_t val = value;
     shared_ptr<uint16_t> result = nullptr;
-    switch(cmd){
-        case cmd_enter:
-            st.push(val);
-            result = make_shared<uint16_t>(st.top());
-            break;
-        case cmd_clear:
-            while (!st.empty()) {
-                st.pop();
-                }
-            result = nullptr;
-            break;
-        case cmd_pop:
-            if(st.empty()){
-            result = nullptr;
-            }else{
+    switch (cmd)
+    {
+    case cmd_enter:
+        st.push(val);
+        result = make_shared<uint16_t>(st.top());
+        break;
+    case cmd_clear:
+        while (!st.empty())
+        {
             st.pop();
-            if(st.empty()){
+        }
+        result = nullptr;
+        break;
+    case cmd_pop:
+        if (st.empty())
+        {
+            result = nullptr;
+        }
+        else
+        {
+            st.pop();
+            if (st.empty())
+            {
                 result = nullptr;
                 break;
             }
             result = make_shared<uint16_t>(st.top());
-            }
-            break;
-        case cmd_left_shift:
-            if(st.size()<2){
-               result = nullptr;
-            }else{
-                uint16_t a = st.top();
-                st.pop();
-                uint16_t b = st.top();
-                st.pop();
-                st.push(b<<a);
-                result = make_shared<uint16_t>(st.top());
-            }
-            break;
-        case cmd_right_shift:
-            if(st.size()<2){
-               result = nullptr;
-            }else{
-                uint16_t a = st.top();
-                st.pop();
-                uint16_t b = st.top();
-                st.pop();
-                st.push(b>>a);
-                result = make_shared<uint16_t>(st.top());
-            }
-            break;
-        case cmd_top:
-            if(st.empty()){
+        }
+        break;
+    case cmd_left_shift:
+        if (st.size() < 2)
+        {
             result = nullptr;
-            }else{
+        }
+        else
+        {
+            uint16_t a = st.top();
+            st.pop();
+            uint16_t b = st.top();
+            st.pop();
+            st.push(b << a);
             result = make_shared<uint16_t>(st.top());
-            }
-            break;
-        case cmd_or:
-            if(st.size()<2){
-               result = nullptr;
-            }else{
-                uint16_t a = st.top();
-                st.pop();
-                uint16_t b = st.top();
-                st.pop();
-                st.push(a|b);
-                result = make_shared<uint16_t>(st.top());
-            }
-            break;
-        case cmd_and:
-            if(st.size()<2){
-               result = nullptr;
-            }else{
-                uint16_t a = st.top();
-                st.pop();
-                uint16_t b = st.top();
-                st.pop();
-                st.push(a&b);
-                result = make_shared<uint16_t>(st.top());
-            }
-            break;
-        default:
-            break;
+        }
+        break;
+    case cmd_right_shift:
+        if (st.size() < 2)
+        {
+            result = nullptr;
+        }
+        else
+        {
+            uint16_t a = st.top();
+            st.pop();
+            uint16_t b = st.top();
+            st.pop();
+            st.push(b >> a);
+            result = make_shared<uint16_t>(st.top());
+        }
+        break;
+    case cmd_top:
+        if (st.empty())
+        {
+            result = nullptr;
+        }
+        else
+        {
+            result = make_shared<uint16_t>(st.top());
+        }
+        break;
+    case cmd_or:
+        if (st.size() < 2)
+        {
+            result = nullptr;
+        }
+        else
+        {
+            uint16_t a = st.top();
+            st.pop();
+            uint16_t b = st.top();
+            st.pop();
+            st.push(a | b);
+            result = make_shared<uint16_t>(st.top());
+        }
+        break;
+    case cmd_and:
+        if (st.size() < 2)
+        {
+            result = nullptr;
+        }
+        else
+        {
+            uint16_t a = st.top();
+            st.pop();
+            uint16_t b = st.top();
+            st.pop();
+            st.push(a & b);
+            result = make_shared<uint16_t>(st.top());
+        }
+        break;
+    case cmd_add:
+        if (st.size() < 2)
+        {
+            result = nullptr;
+        }
+        else
+        {
+            uint16_t a = st.top();
+            st.pop();
+            uint16_t b = st.top();
+            st.pop();
+            result = add(a,b);
+        }
+        break;
+    default:
+        break;
     }
-    
 
     return result;
 }
@@ -144,7 +192,8 @@ shared_ptr<uint16_t> rpn_calc(command const cmd, uint16_t const value = 0) {
  * *** STUDENTS SHOULD NOT NEED TO CHANGE THE CODE BELOW. IT IS A CUSTOM TEST HARNESS. ***
  */
 
-void header() {
+void header()
+{
     cout << left << setw(table_width[0]) << setfill(' ') << "pass/fail";
     cout << left << setw(table_width[1]) << setfill(' ') << "command";
     cout << left << setw(table_width[2]) << setfill(' ') << "value";
@@ -160,34 +209,43 @@ void header() {
     cout << left << setw(table_width[5]) << setfill(' ') << "--------" << endl;
 }
 
-void print_row(bool const test_success, command const cmd, int16_t const value, shared_ptr<uint16_t> top_of_stack) {
+void print_row(bool const test_success, command const cmd, int16_t const value, shared_ptr<uint16_t> top_of_stack)
+{
     // print results
     string const pass_fail = test_success ? "PASS" : "FAIL";
     cout << left << setw(table_width[0]) << setfill(' ') << pass_fail;
     cout << left << setw(table_width[1]) << setfill(' ') << command_name[cmd];
-    if (value == VALUE_NULLPTR) {
+    if (value == VALUE_NULLPTR)
+    {
         cout << left << setw(table_width[2]) << setfill(' ') << " ";
         cout << left << setw(table_width[3]) << setfill(' ') << " ";
-    } else {
+    }
+    else
+    {
         cout << left << setw(table_width[2]) << setfill(' ') << value;
         cout << left << setw(table_width[3]) << setfill(' ') << bitset<width>(value);
     }
 
-    if (top_of_stack) {
+    if (top_of_stack)
+    {
         cout << left << setw(table_width[4]) << setfill(' ') << *top_of_stack;
         cout << left << setw(table_width[5]) << setfill(' ') << bitset<width>(*top_of_stack) << endl;
-    } else {
+    }
+    else
+    {
         cout << left << setw(table_width[4]) << setfill(' ') << " ";
         cout << left << setw(table_width[5]) << setfill(' ') << " " << endl;
     }
 }
 
-vector<string> split(string const &s, string const &delimiter) {
+vector<string> split(string const &s, string const &delimiter)
+{
     vector<string> tokens;
     size_t pos = 0;
     size_t start = 0;
     string token;
-    while (pos != string::npos) {
+    while (pos != string::npos)
+    {
         pos = s.find(",", start);
         token = s.substr(start, pos - start);
         tokens.push_back(token);
@@ -197,24 +255,31 @@ vector<string> split(string const &s, string const &delimiter) {
     return tokens;
 }
 
-void init_command_map(unordered_map<string, command> &command_map) {
-    for (size_t i = 0; i < command_name.size(); i++) {
+void init_command_map(unordered_map<string, command> &command_map)
+{
+    for (size_t i = 0; i < command_name.size(); i++)
+    {
         string const cmd = command_name[i];
         command_map[cmd] = static_cast<command>(i);
     }
 }
 
 bool parse_csv_line(string const line, unordered_map<string, command> command_map, command &input_cmd,
-                    uint16_t &input_value, int32_t &answer_value) {
-    try {
+                    uint16_t &input_value, int32_t &answer_value)
+{
+    try
+    {
         vector<string> tokens = split(line, ",");
 
         // get command
         string cmd = tokens[0];
         // if command is  valid
-        if (command_map.count(cmd) == 1) {
+        if (command_map.count(cmd) == 1)
+        {
             input_cmd = command_map[cmd];
-        } else {
+        }
+        else
+        {
             cout << "ERROR: Invalid command cmd=" << cmd << endl;
             return false;
         }
@@ -222,8 +287,9 @@ bool parse_csv_line(string const line, unordered_map<string, command> command_ma
         // get input and value
         input_value = stoi(tokens[1].c_str());
         answer_value = stoi(tokens[2].c_str());
-
-    } catch (exception const &e) {
+    }
+    catch (exception const &e)
+    {
         cout << "ERROR: Unable to parse input csv file, line=" << line << endl;
         cout << "ERROR: exception e=" << e.what() << endl;
         return false;
@@ -232,10 +298,12 @@ bool parse_csv_line(string const line, unordered_map<string, command> command_ma
     return true;
 }
 
-bool test() {
+bool test()
+{
     // open input file
     ifstream input_file(INPUT_CSV_FILE);
-    if (!input_file.is_open()) {
+    if (!input_file.is_open())
+    {
         cout << "ERROR: Unable to find and open the file " << INPUT_CSV_FILE << endl;
         cout << "       Make sure the path to the file is correct in your code" << endl;
         return false;
@@ -253,23 +321,29 @@ bool test() {
     uint16_t pass = 0;
     string line;
     size_t row = 0;
-    while (getline(input_file, line)) {
+    while (getline(input_file, line))
+    {
         // cout << "line " << row << ":" << line << endl;
-        if (row > 0) {
+        if (row > 0)
+        {
             // parse csv line
             command input_cmd;
             uint16_t input_value;
             int32_t input_answer;
             bool parse_success = parse_csv_line(line, command_map, input_cmd, input_value, input_answer);
-            if (!parse_success) {
+            if (!parse_success)
+            {
                 return false;
             }
 
             // set answer value
             shared_ptr<uint16_t> answer;
-            if (input_answer == VALUE_NULLPTR) {
+            if (input_answer == VALUE_NULLPTR)
+            {
                 answer = nullptr;
-            } else {
+            }
+            else
+            {
                 answer = make_shared<uint16_t>(input_answer);
             }
 
@@ -280,7 +354,8 @@ bool test() {
             bool test_success = false;
             bool both_null = answer == nullptr && result == nullptr;
             bool both_same_value = answer && result && (*answer == *result);
-            if (both_null || both_same_value) {
+            if (both_null || both_same_value)
+            {
                 pass += 1;
                 test_success = true;
             }
@@ -299,9 +374,12 @@ bool test() {
 
     // summarize results
     cout << "-------------------------------------------" << endl;
-    if (all_test_pass) {
+    if (all_test_pass)
+    {
         cout << "SUCCESS ";
-    } else {
+    }
+    else
+    {
         cout << "FAILURE ";
     }
     const size_t num_tests = row - 1;
@@ -311,8 +389,10 @@ bool test() {
     return success;
 }
 
-int main() {
-    if (!test()) {
+int main()
+{
+    if (!test())
+    {
         return -1;
     }
     return 0;

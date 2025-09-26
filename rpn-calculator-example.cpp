@@ -108,6 +108,30 @@ shared_ptr<uint16_t> rpn_calc(command const cmd, uint16_t const value = 0) {
             result = make_shared<uint16_t>(st.top());
             }
             break;
+        case cmd_or:
+            if(st.size()<2){
+               result = nullptr;
+            }else{
+                uint16_t a = st.top();
+                st.pop();
+                uint16_t b = st.top();
+                st.pop();
+                st.push(a|b);
+                result = make_shared<uint16_t>(st.top());
+            }
+            break;
+        case cmd_and:
+            if(st.size()<2){
+               result = nullptr;
+            }else{
+                uint16_t a = st.top();
+                st.pop();
+                uint16_t b = st.top();
+                st.pop();
+                st.push(a&b);
+                result = make_shared<uint16_t>(st.top());
+            }
+            break;
         default:
             break;
     }

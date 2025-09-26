@@ -59,6 +59,12 @@ shared_ptr<uint16_t> rpn_calc(command const cmd, uint16_t const value = 0) {
             st.push(val);
             result = make_shared<uint16_t>(st.top());
             break;
+        case cmd_clear:
+            while (!st.empty()) {
+                st.pop();
+                }
+            result = nullptr;
+            break;
         default:
             break;
     }
